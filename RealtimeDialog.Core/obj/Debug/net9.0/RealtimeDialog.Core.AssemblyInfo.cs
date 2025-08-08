@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RealtimeDialog.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2161c162fa2129477aa5acc92d5df2248198ddd8")]
 [assembly: System.Reflection.AssemblyProductAttribute("RealtimeDialog.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RealtimeDialog.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

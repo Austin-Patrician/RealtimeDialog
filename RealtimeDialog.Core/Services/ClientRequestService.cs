@@ -250,10 +250,10 @@ public class StartSessionPayload
 
 public class TTSPayload
 {
-    public AudioConfig AudioConfig { get; set; } = new();
+    public TTSAudioConfig AudioConfig { get; set; } = new();
 }
 
-public class AudioConfig
+public class TTSAudioConfig
 {
     public int Channel { get; set; } = 1;
     public string Format { get; set; } = "pcm";

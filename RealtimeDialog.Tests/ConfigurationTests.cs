@@ -39,7 +39,7 @@ public class ConfigurationTests
     public void AudioConfig_DefaultValues_ShouldBeValid()
     {
         // Arrange & Act
-        var config = new AudioConfig();
+        var config = new ConfigAudioConfig();
 
         // Assert
         Assert.NotNull(config.Input);

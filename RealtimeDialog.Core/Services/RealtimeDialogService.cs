@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RealtimeDialog.Core.Audio;
 using RealtimeDialog.Core.Configuration;
 using System.Collections.Concurrent;
 
@@ -13,7 +12,6 @@ public class RealtimeDialogService : IDisposable
     private readonly WebSocketClient _webSocketClient;
     private readonly ClientRequestService _clientRequestService;
     private readonly ServerResponseService _serverResponseService;
-    private readonly AudioService _audioService;
     
     private string _sessionId = string.Empty;
     private string _dialogId = string.Empty;
@@ -36,15 +34,13 @@ public class RealtimeDialogService : IDisposable
         IOptions<RealtimeDialogConfig> config,
         WebSocketClient webSocketClient,
         ClientRequestService clientRequestService,
-        ServerResponseService serverResponseService,
-        AudioService audioService)
+        ServerResponseService serverResponseService)
     {
         _logger = logger;
         _config = config.Value;
         _webSocketClient = webSocketClient;
         _clientRequestService = clientRequestService;
         _serverResponseService = serverResponseService;
-        _audioService = audioService;
         
         // Subscribe to server response events
         _serverResponseService.UserQueryDetected += OnUserQueryDetected;
@@ -67,12 +63,7 @@ public class RealtimeDialogService : IDisposable
             
             _logger.LogInformation("Starting RealtimeDialog service with session {SessionId}", _sessionId);
 
-            // Initialize audio service
-            if (!await _audioService.InitializeAsync())
-            {
-                _logger.LogError("Failed to initialize audio service");
-                return false;
-            }
+            // Audio processing will be handled by frontend
 
             // Connect to WebSocket
             var uri = new Uri(_config.WebSocket.Url);
@@ -106,7 +97,7 @@ public class RealtimeDialogService : IDisposable
             {
                 TTS = new TTSPayload
                 {
-                    AudioConfig = new AudioConfig
+                    AudioConfig = new TTSAudioConfig
                     {
                         Channel = _config.Audio.Output.Channels,
                         Format = "pcm",
@@ -138,12 +129,7 @@ public class RealtimeDialogService : IDisposable
                 Content = _config.Dialog.DefaultGreeting
             }, _cancellationTokenSource.Token);
 
-            // Start audio processing
-            if (!await _audioService.StartAudioProcessingAsync(_sessionId, _cancellationTokenSource.Token))
-            {
-                _logger.LogError("Failed to start audio processing");
-                return false;
-            }
+            // Audio processing will be handled by frontend
 
             // Start server response listening
             _ = Task.Run(() => _serverResponseService.StartListeningAsync(_cancellationTokenSource.Token), _cancellationTokenSource.Token);
@@ -176,8 +162,7 @@ public class RealtimeDialogService : IDisposable
             _cancellationTokenSource?.Cancel();
             _greetingTimer?.Dispose();
 
-            // Stop audio processing
-            await _audioService.StopAudioProcessingAsync();
+            // Audio processing handled by frontend - no cleanup needed
 
             // Finish session if active
             if (_isSessionActive && !string.IsNullOrEmpty(_sessionId))
@@ -269,7 +254,7 @@ public class RealtimeDialogService : IDisposable
 
         _greetingTimer?.Dispose();
         _cancellationTokenSource?.Dispose();
-        _audioService?.Dispose();
+        // Audio service removed - no disposal needed
         _webSocketClient?.Dispose();
         
         _disposed = true;

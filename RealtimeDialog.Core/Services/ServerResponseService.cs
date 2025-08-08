@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using RealtimeDialog.Core.Protocol;
-using RealtimeDialog.Core.Audio;
 
 namespace RealtimeDialog.Core.Services;
 
@@ -12,36 +11,26 @@ public class ServerResponseService : IDisposable
     private readonly ILogger<ServerResponseService> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly WebSocketClient _webSocketClient;
-    private readonly AudioPlayer _audioPlayer;
-    private readonly AudioService? _audioService; // Optional dependency for state sync
-    private readonly ConcurrentQueue<float[]> _audioBuffer = new();
-    private readonly object _bufferLock = new();
+    // Audio processing moved to frontend - no longer needed
     private volatile bool _isSendingChatTTSText;
     private volatile bool _isUserQuerying;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     
-    // Audio constants
-    private const int SampleRate = 24000;
-    private const int Channels = 1;
-    private const int BufferSeconds = 100;
-    private const int MaxBufferSize = SampleRate * BufferSeconds;
+    // Audio processing moved to frontend
     
     public event Action? UserQueryDetected;
     public event Action? UserQueryFinished;
     public event Action<int>? SessionFinished;
+    public event Action<byte[]>? AudioDataReceived;
 
     public ServerResponseService(
         ILogger<ServerResponseService> logger,
         ILoggerFactory loggerFactory,
-        WebSocketClient webSocketClient,
-        AudioPlayer audioPlayer,
-        AudioService? audioService = null)
+        WebSocketClient webSocketClient)
     {
         _logger = logger;
         _loggerFactory = loggerFactory;
         _webSocketClient = webSocketClient;
-        _audioPlayer = audioPlayer;
-        _audioService = audioService;
     }
 
     public async Task StartListeningAsync(CancellationToken cancellationToken = default)
@@ -49,20 +38,8 @@ public class ServerResponseService : IDisposable
         var combinedToken = CancellationTokenSource.CreateLinkedTokenSource(
             cancellationToken, _cancellationTokenSource.Token).Token;
 
-        // Initialize and start audio player
-        if (!await _audioPlayer.InitializeAsync())
-        {
-            _logger.LogError("Failed to initialize audio player");
-            return;
-        }
-        
-        if (!await _audioPlayer.StartPlaybackAsync(GetNextAudioBuffer, combinedToken))
-        {
-            _logger.LogError("Failed to start audio playback");
-            return;
-        }
-        
-        _logger.LogInformation("Audio player started successfully");
+        // Audio playback handled by frontend
+        _logger.LogInformation("Server response service started - audio handled by frontend");
 
         try
         {
@@ -90,7 +67,8 @@ public class ServerResponseService : IDisposable
         }
         finally
         {
-            await _audioPlayer.StopPlaybackAsync();
+            // Audio cleanup handled by frontend
+            _logger.LogInformation("Server response service stopped");
         }
     }
 
@@ -132,15 +110,9 @@ public class ServerResponseService : IDisposable
                 return;
                 
             case 450:
-                // ASR info event - clear audio buffer
-                ClearAudioBuffer();
+                // ASR info event - user query detected
                 UserQueryDetected?.Invoke();
                 _isUserQuerying = true;
-                // Sync state with AudioService
-                if (_audioService != null)
-                {
-                    _audioService.SetUserQueryingState(true);
-                }
                 break;
                 
             case 350 when _isSendingChatTTSText:
@@ -151,11 +123,6 @@ public class ServerResponseService : IDisposable
             case 459:
                 _isUserQuerying = false;
                 UserQueryFinished?.Invoke();
-                // Sync state with AudioService
-                if (_audioService != null)
-                {
-                    _audioService.SetUserQueryingState(false);
-                }
                 
                 // Randomly trigger ChatTTSText request (50% chance)
                 if (Random.Shared.Next(2) == 0)
@@ -178,13 +145,7 @@ public class ServerResponseService : IDisposable
             if (jsonData?.TryGetValue("tts_type", out var ttsTypeObj) == true && 
                 ttsTypeObj.ToString() == "chat_tts_text")
             {
-                ClearAudioBuffer();
                 _isSendingChatTTSText = false;
-                // Sync state with AudioService
-                if (_audioService != null)
-                {
-                    _audioService.SetChatTTSTextState(false);
-                }
             }
         }
         catch (Exception ex)
@@ -198,11 +159,6 @@ public class ServerResponseService : IDisposable
         try
         {
             _isSendingChatTTSText = true;
-            // Sync state with AudioService
-            if (_audioService != null)
-            {
-                _audioService.SetChatTTSTextState(true);
-            }
             _logger.LogInformation("Hit ChatTTSText event, start sending...");
             
             var clientRequestService = new ClientRequestService(_loggerFactory.CreateLogger<ClientRequestService>(), _webSocketClient);
@@ -244,11 +200,6 @@ public class ServerResponseService : IDisposable
         {
             _logger.LogError(ex, "Error sending ChatTTSText sequence");
             _isSendingChatTTSText = false;
-            // Sync state with AudioService on error
-            if (_audioService != null)
-            {
-                _audioService.SetChatTTSTextState(false);
-            }
         }
     }
 
@@ -264,9 +215,9 @@ public class ServerResponseService : IDisposable
 
         try
         {
-            // Use payload bytes directly
+            // Forward audio data to frontend via event
             var audioBytes = message.Payload ?? Array.Empty<byte>();
-            HandleIncomingAudio(audioBytes);
+            AudioDataReceived?.Invoke(audioBytes);
         }
         catch (Exception ex)
         {
@@ -274,91 +225,7 @@ public class ServerResponseService : IDisposable
         }
     }
 
-    private void HandleIncomingAudio(byte[] data)
-    {
-        if (_isSendingChatTTSText)
-        {
-            _logger.LogDebug("Skipping audio data - currently sending ChatTTS text");
-            return;
-        }
-
-        _logger.LogDebug("Received audio byte len: {ByteLen}, float32 len: {Float32Len}", 
-            data.Length, data.Length / 4);
-            
-        var sampleCount = data.Length / 4;
-        var samples = new float[sampleCount];
-        
-        // Convert bytes to float32 samples (little-endian)
-        for (int i = 0; i < sampleCount; i++)
-        {
-            var bits = BitConverter.ToUInt32(data, i * 4);
-            samples[i] = BitConverter.UInt32BitsToSingle(bits);
-        }
-        
-        _logger.LogDebug("Converted {SampleCount} samples, first few values: [{Sample1}, {Sample2}, {Sample3}]", 
-            sampleCount, 
-            sampleCount > 0 ? samples[0] : 0f,
-            sampleCount > 1 ? samples[1] : 0f,
-            sampleCount > 2 ? samples[2] : 0f);
-
-        // Add to audio buffer
-        lock (_bufferLock)
-        {
-            _audioBuffer.Enqueue(samples);
-            _logger.LogDebug("Added samples to buffer, current buffer count: {BufferCount}", _audioBuffer.Count);
-            
-            // Limit buffer size
-            var totalSamples = 0;
-            var tempQueue = new Queue<float[]>();
-            
-            while (_audioBuffer.TryDequeue(out var buffer))
-            {
-                tempQueue.Enqueue(buffer);
-                totalSamples += buffer.Length;
-            }
-            
-            // Keep only the most recent samples within buffer limit
-            while (totalSamples > MaxBufferSize && tempQueue.Count > 0)
-            {
-                var oldBuffer = tempQueue.Dequeue();
-                totalSamples -= oldBuffer.Length;
-            }
-            
-            // Put remaining buffers back
-            while (tempQueue.Count > 0)
-            {
-                _audioBuffer.Enqueue(tempQueue.Dequeue());
-            }
-        }
-    }
-
-    private float[]? GetNextAudioBuffer()
-    {
-        lock (_bufferLock)
-        {
-            var hasBuffer = _audioBuffer.TryDequeue(out var buffer);
-            if (hasBuffer && buffer != null)
-            {
-                _logger.LogTrace("Providing {SampleCount} samples to AudioPlayer, remaining buffer count: {BufferCount}", 
-                    buffer.Length, _audioBuffer.Count);
-                return buffer;
-            }
-            else
-            {
-                _logger.LogTrace("No audio buffer available for AudioPlayer");
-                return null;
-            }
-        }
-    }
-
-    private void ClearAudioBuffer()
-    {
-        lock (_bufferLock)
-        {
-            while (_audioBuffer.TryDequeue(out _)) { }
-        }
-        _logger.LogInformation("Audio buffer cleared");
-    }
+    // Audio buffer management moved to frontend
 
     public void Stop()
     {

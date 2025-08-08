@@ -5,7 +5,7 @@ public class RealtimeDialogConfig
     public const string SectionName = "RealtimeDialog";
     
     public WebSocketConfig WebSocket { get; set; } = new();
-    public AudioConfig Audio { get; set; } = new();
+    public ConfigAudioConfig Audio { get; set; } = new();
     public DialogConfig Dialog { get; set; } = new();
     public LoggingConfig Logging { get; set; } = new();
 }
@@ -21,7 +21,7 @@ public class WebSocketConfig
     public int ReceiveTimeoutMs { get; set; } = 60000;
 }
 
-public class AudioConfig
+public class ConfigAudioConfig
 {
     public InputConfig Input { get; set; } = new();
     public OutputConfig Output { get; set; } = new();

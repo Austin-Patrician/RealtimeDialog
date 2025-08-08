@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\RealtimeDialog.Core.props" />
+</Project>

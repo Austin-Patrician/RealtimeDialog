@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using RealtimeDialog.Core.Audio;
 using RealtimeDialog.Core.Services;
 
 namespace RealtimeDialog.Core.Configuration;
@@ -18,10 +17,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ClientRequestService>();
         services.AddSingleton<ServerResponseService>();
         
-        // Register audio services
-        services.AddSingleton<AudioRecorder>();
-        services.AddSingleton<AudioPlayer>();
-        services.AddSingleton<AudioService>();
+        // Register session and audio forwarding services
+        services.AddSingleton<ISessionManager, InMemorySessionManager>();
+        services.AddSingleton<IAudioForwardingService, DoubaoAudioForwardingService>();
         
         // Register main dialog service
         services.AddSingleton<RealtimeDialogService>();
