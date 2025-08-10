@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "mUD3BowVsSc=",
+  "success": true,
+  "projectFilePath": "/Users/aa123456/code/net/RealTimeDialog/AiVox/AiVox.csproj",
+  "expectedPackageFiles": [
+    "/Users/aa123456/.nuget/packages/microsoft.extensions.logging.abstractions/3.1.4/microsoft.extensions.logging.abstractions.3.1.4.nupkg.sha512",
+    "/Users/aa123456/.nuget/packages/nativelibrarymanager/1.0.23/nativelibrarymanager.1.0.23.nupkg.sha512",
+    "/Users/aa123456/.nuget/packages/portaudiosharp/0.3.0/portaudiosharp.0.3.0.nupkg.sha512",
+    "/Users/aa123456/.nuget/packages/system.threading.channels/9.0.8/system.threading.channels.9.0.8.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,93 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "AiVox/1.0.0": {
+        "dependencies": {
+          "PortAudioSharp": "0.3.0",
+          "System.Threading.Channels": "9.0.8"
+        },
+        "runtime": {
+          "AiVox.dll": {}
+        }
+      },
+      "Microsoft.Extensions.Logging.Abstractions/3.1.4": {
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.Extensions.Logging.Abstractions.dll": {
+            "assemblyVersion": "3.1.4.0",
+            "fileVersion": "3.100.420.21409"
+          }
+        }
+      },
+      "NativeLibraryManager/1.0.23": {
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": "3.1.4"
+        },
+        "runtime": {
+          "lib/netstandard2.0/NativeLibraryManager.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "PortAudioSharp/0.3.0": {
+        "dependencies": {
+          "NativeLibraryManager": "1.0.23"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PortAudioSharp.dll": {
+            "assemblyVersion": "0.3.0.0",
+            "fileVersion": "0.3.0.0"
+          }
+        }
+      },
+      "System.Threading.Channels/9.0.8": {
+        "runtime": {
+          "lib/net9.0/System.Threading.Channels.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.825.36511"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "AiVox/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.Extensions.Logging.Abstractions/3.1.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-JNPxhw2XwhjfGFyIkA5eBfzUDPNpa6Q50HJ2F6lCAMoSa1GquAktTrl4PhEyTYFNmu09B0E90WhYsUb3kmSkOA==",
+      "path": "microsoft.extensions.logging.abstractions/3.1.4",
+      "hashPath": "microsoft.extensions.logging.abstractions.3.1.4.nupkg.sha512"
+    },
+    "NativeLibraryManager/1.0.23": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-QINOsTAY2nN+PW8Lomg0VKEQjN72dqqZ1fTfGyIi1skbSzLMQJOrzH5bBq3b2NCeOhKUjYkXS7ByBtvulmMmTQ==",
+      "path": "nativelibrarymanager/1.0.23",
+      "hashPath": "nativelibrarymanager.1.0.23.nupkg.sha512"
+    },
+    "PortAudioSharp/0.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-9hEuEu8CKX0dcmzj26NU+wba5CkSnMpG1qX6/iarlf9gQVC+3ffE41LDLsne3H/Ki17XGNOry4D1ly/FCg2KPw==",
+      "path": "portaudiosharp/0.3.0",
+      "hashPath": "portaudiosharp.0.3.0.nupkg.sha512"
+    },
+    "System.Threading.Channels/9.0.8": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-kpvkzWJoHR9os3/4LL5feaTTLD92+XzTqPyYLU2tw2BoJ4MrWCfkjGXtL7MsdpV/20e1+SamCbrPj2L9ptwgBA==",
+      "path": "system.threading.channels/9.0.8",
+      "hashPath": "system.threading.channels.9.0.8.nupkg.sha512"
+    }
+  }
+}

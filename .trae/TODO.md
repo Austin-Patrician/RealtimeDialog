@@ -1,11 +1,9 @@
 # TODO:
 
-- [x] 20: 检查前端React开发服务器运行状态（http://localhost:5173） (priority: High)
-- [x] 21: 检查后端SignalR服务运行状态（http://localhost:5000） (priority: High)
-- [x] 22: 测试前端SignalR客户端连接到后端ConversationHub (priority: High)
-- [x] 23: 测试Web Audio API的音频录制功能（麦克风权限和音频采集） (priority: High)
-- [x] 24: 测试Web Audio API的音频播放功能（Float32Array格式播放） (priority: High)
-- [x] 25: 验证前后端音频数据传输协议（24kHz采样率，Float32Array格式） (priority: High)
-- [x] 26: 测试实时对话界面的交互功能（开始/停止录音按钮、状态显示） (priority: Medium)
-- [x] 27: 测试设置页面的音频参数配置功能 (priority: Medium)
-- [x] 28: 检查整个系统的错误处理和稳定性 (priority: Medium)
+- [x] 1: 创建React TypeScript Vite项目Vox (priority: High)
+- [x] 2: 分析Go原版项目的音频处理实现 (priority: High)
+- [x] 3: 分析AiVox项目的音频处理部分 (priority: High)
+- [x] 4: 在Vox项目中实现音频录制、传输和播放功能 (priority: High)
+- [x] 5: 实现实时音频缓冲和流处理 (priority: High)
+- [x] 6: 从AiVox项目移除所有音频处理相关代码 (priority: Medium)
+- [x] 7: 测试前后台互通和功能完整性 (priority: Medium)
