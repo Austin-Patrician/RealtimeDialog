@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace AiVox
 {
@@ -193,22 +194,81 @@ namespace AiVox
             // Set serialization to RAW for audio frames, as in Go
             Program.Protocol.SetSerialization(SerializationBits.SerializationRaw);
 
-            // RECORD: Go uses portaudio with real callback streaming int16 PCM @16kHz, framesPerBuffer=160.
-            // .NET todo: Implement PortAudioSharp input stream callback producing short[] and converting to S16LE bytes.
-            // Until implemented, we keep a placeholder loop that waits for cancellation (no audio sent).
-            Task.Run(async () =>
+            _ = Task.Run(() =>
             {
-                Console.WriteLine("Microphone input stream stub started. TODO: PortAudioSharp capture.");
+                IntPtr stream = IntPtr.Zero;
                 try
                 {
+                    const int sampleRate = 16000;
+                    const int channels = 1;
+                    const int framesPerBuffer = 160;
+
+                    // Open default input stream: int16 mono @ 16kHz
+                    int rc = PortAudioNative.Pa_OpenDefaultStream(
+                        out stream,
+                        channels,
+                        0,
+                        PortAudioNative.PaSampleFormat.paInt16,
+                        sampleRate,
+                        (ulong)framesPerBuffer,
+                        IntPtr.Zero,
+                        IntPtr.Zero
+                    );
+                    if (rc != PortAudioNative.paNoError)
+                    {
+                        Console.Error.WriteLine($"Failed to open microphone input stream: {PortAudioNative.ErrorText(rc)}");
+                        return;
+                    }
+
+                    rc = PortAudioNative.Pa_StartStream(stream);
+                    if (rc != PortAudioNative.paNoError)
+                    {
+                        Console.Error.WriteLine($"Failed to start microphone input stream: {PortAudioNative.ErrorText(rc)}");
+                        return;
+                    }
+                    Console.WriteLine("Microphone input stream started. please speak...");
+
+                    int samplesPerBuffer = framesPerBuffer * channels;
+                    var samples = new short[samplesPerBuffer];
+                    var audioBytes = new byte[samplesPerBuffer * 2];
+
                     while (!ct.IsCancellationRequested)
                     {
-                        await Task.Delay(250, ct).ConfigureAwait(false);
-                        // When implemented:
-                        // - Convert short[] (little-endian) to byte[]
-                        // - Build Message with MsgTypeAudioOnlyClient + MsgTypeFlagWithEvent
-                        // - msg.Event = 200; msg.SessionID = sessionId; msg.Payload = audioBytes
-                        // - Marshal and ws.SendAsync (locked)
+                        // Blocking read one buffer of frames from PortAudio (int16)
+                        var handle = GCHandle.Alloc(samples, GCHandleType.Pinned);
+                        try
+                        {
+                            rc = PortAudioNative.Pa_ReadStream(stream, handle.AddrOfPinnedObject(), (ulong)framesPerBuffer);
+                        }
+                        finally
+                        {
+                            handle.Free();
+                        }
+                        if (rc != PortAudioNative.paNoError)
+                        {
+                            Console.Error.WriteLine($"Error reading audio: {PortAudioNative.ErrorText(rc)}");
+                            break;
+                        }
+
+                        // Convert short[] to PCM S16LE bytes (low byte first), same as Go
+                        for (int i = 0; i < samplesPerBuffer; i++)
+                        {
+                            short s = samples[i];
+                            audioBytes[i * 2] = (byte)(s & 0xFF);
+                            audioBytes[i * 2 + 1] = (byte)((s >> 8) & 0xFF);
+                        }
+
+                        var msg = Message.NewMessage(MsgType.MsgTypeAudioOnlyClient, MsgTypeFlagBits.MsgTypeFlagWithEvent);
+                        msg.Event = 200;
+                        msg.SessionID = sessionId;
+                        msg.Payload = audioBytes;
+
+                        var frame = Program.Protocol.Marshal(msg);
+
+                        lock (Program.WsWriteLock)
+                        {
+                            ws.SendAsync(frame.AsMemory(), WebSocketMessageType.Binary, true, ct).GetAwaiter().GetResult();
+                        }
                     }
                 }
                 catch (OperationCanceledException) { }
@@ -216,9 +276,14 @@ namespace AiVox
                 {
                     Console.Error.WriteLine($"Audio loop error: {ex}");
                 }
-                Console.WriteLine("Microphone input stream stub stopped.");
-                // On exit, send FinishSession (like Go)
-                _ = FinishSessionAsync(ws, sessionId, CancellationToken.None);
+                finally
+                {
+                    try { if (stream != IntPtr.Zero) PortAudioNative.Pa_StopStream(stream); } catch { }
+                    try { if (stream != IntPtr.Zero) PortAudioNative.Pa_CloseStream(stream); } catch { }
+                    Console.WriteLine("Microphone input stream stopped.");
+                    // On exit, send FinishSession (like Go)
+                    _ = FinishSessionAsync(ws, sessionId, CancellationToken.None);
+                }
             }, ct);
         }
 

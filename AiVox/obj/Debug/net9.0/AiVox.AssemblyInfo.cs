@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AiVox")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dee6685c23c033eedcbaf68631df5c168d7fbb01")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7f17f78013ef05775f79b55ca582a83b2e42eaf7")]
 [assembly: System.Reflection.AssemblyProductAttribute("AiVox")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AiVox")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace AiVox
 {
@@ -86,56 +87,56 @@ namespace AiVox
                             }
                             catch { /* ignore malformed json */ }
                         }
-                        if (msg.Event == 459)
-                        {
-                            Program.SetIsUserQuerying(false);
-                        }
-                        // 概率触发发送ChatTTSText请求
-                        if (msg.Event == 459 && Random.Shared.Next(2) == 0)
-                        {
-                            _ = Task.Run(async () =>
-                            {
-                                Program.SetIsSendingChatTTSText(true);
-                                Console.WriteLine("hit ChatTTSText event, start sending...");
-                                try
-                                {
-                                    await ClientRequest.ChatTTSTextAsync(ws, msg.SessionID, new ChatTTSTextPayload
-                                    {
-                                        Start = true,
-                                        End = false,
-                                        Content = "这是第一轮TTS的开始和中间包事件，这两个合而为一了。"
-                                    }, ct).ConfigureAwait(false);
-
-                                    await ClientRequest.ChatTTSTextAsync(ws, msg.SessionID, new ChatTTSTextPayload
-                                    {
-                                        Start = false,
-                                        End = true,
-                                        Content = "这是第一轮TTS的结束事件。"
-                                    }, ct).ConfigureAwait(false);
-
-                                    await Task.Delay(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
-
-                                    await ClientRequest.ChatTTSTextAsync(ws, msg.SessionID, new ChatTTSTextPayload
-                                    {
-                                        Start = true,
-                                        End = false,
-                                        Content = "这是第二轮TTS的开始和中间包事件，这两个合而为一了。"
-                                    }, ct).ConfigureAwait(false);
-
-                                    await ClientRequest.ChatTTSTextAsync(ws, msg.SessionID, new ChatTTSTextPayload
-                                    {
-                                        Start = false,
-                                        End = true,
-                                        Content = "这是第二轮TTS的结束事件。"
-                                    }, ct).ConfigureAwait(false);
-                                }
-                                catch (OperationCanceledException) { }
-                                catch (Exception ex)
-                                {
-                                    Console.Error.WriteLine($"ChatTTSText sequence error: {ex}");
-                                }
-                            }, ct);
-                        }
+                        // if (msg.Event == 459)
+                        // {
+                        //     Program.SetIsUserQuerying(false);
+                        // }
+                        // // 概率触发发送ChatTTSText请求
+                        // if (msg.Event == 459 && Random.Shared.Next(2) == 0)
+                        // {
+                        //     _ = Task.Run(async () =>
+                        //     {
+                        //         Program.SetIsSendingChatTTSText(true);
+                        //         Console.WriteLine("hit ChatTTSText event, start sending...");
+                        //         try
+                        //         {
+                        //             await ClientRequest.ChatTTSTextAsync(ws, msg.SessionID, new ChatTTSTextPayload
+                        //             {
+                        //                 Start = true,
+                        //                 End = false,
+                        //                 Content = "这是第一轮TTS的开始和中间包事件，这两个合而为一了。"
+                        //             }, ct).ConfigureAwait(false);
+                        //
+                        //             await ClientRequest.ChatTTSTextAsync(ws, msg.SessionID, new ChatTTSTextPayload
+                        //             {
+                        //                 Start = false,
+                        //                 End = true,
+                        //                 Content = "这是第一轮TTS的结束事件。"
+                        //             }, ct).ConfigureAwait(false);
+                        //
+                        //             await Task.Delay(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
+                        //
+                        //             await ClientRequest.ChatTTSTextAsync(ws, msg.SessionID, new ChatTTSTextPayload
+                        //             {
+                        //                 Start = true,
+                        //                 End = false,
+                        //                 Content = "这是第二轮TTS的开始和中间包事件，这两个合而为一了。"
+                        //             }, ct).ConfigureAwait(false);
+                        //
+                        //             await ClientRequest.ChatTTSTextAsync(ws, msg.SessionID, new ChatTTSTextPayload
+                        //             {
+                        //                 Start = false,
+                        //                 End = true,
+                        //                 Content = "这是第二轮TTS的结束事件。"
+                        //             }, ct).ConfigureAwait(false);
+                        //         }
+                        //         catch (OperationCanceledException) { }
+                        //         catch (Exception ex)
+                        //         {
+                        //             Console.Error.WriteLine($"ChatTTSText sequence error: {ex}");
+                        //         }
+                        //     }, ct);
+                        // }
                         break;
 
                     case MsgType.MsgTypeAudioOnlyServer:
@@ -191,21 +192,91 @@ namespace AiVox
 
         private static Task StartPlayerAsync(CancellationToken ct)
         {
-            // NOTE: Go uses PortAudio output stream to play float32 samples.
-            // .NET parity gap: PortAudioSharp integration will be implemented later to mirror:
-            //  - SampleRate=24000, Channels=1, FramesPerBuffer=512
-            //  - Callback: pull from Buffer under lock into out[] float
-            // For now: stub that waits for cancellation, then saves PCM buffer to file (like Go).
-            return Task.Run(async () =>
+            // Blocking I/O playback using PortAudio native API to mirror Go behavior.
+            return Task.Run(() =>
             {
-                Console.WriteLine("PortAudio output stream stub started for playback. TODO: integrate PortAudioSharp.");
+                IntPtr stream = IntPtr.Zero;
                 try
                 {
-                    await Task.Delay(Timeout.Infinite, ct).ConfigureAwait(false);
+                    const int sampleRate = 24000;
+                    const int channels = 1;
+                    const int framesPerBuffer = 512;
+
+                    int rc = PortAudioNative.Pa_OpenDefaultStream(
+                        out stream,
+                        0,
+                        channels,
+                        PortAudioNative.PaSampleFormat.paFloat32,
+                        sampleRate,
+                        (ulong)framesPerBuffer,
+                        IntPtr.Zero,
+                        IntPtr.Zero
+                    );
+                    if (rc != PortAudioNative.paNoError)
+                    {
+                        Console.Error.WriteLine($"Failed to open PortAudio output stream: {PortAudioNative.ErrorText(rc)}");
+                        return;
+                    }
+
+                    rc = PortAudioNative.Pa_StartStream(stream);
+                    if (rc != PortAudioNative.paNoError)
+                    {
+                        Console.Error.WriteLine($"Failed to start PortAudio output stream: {PortAudioNative.ErrorText(rc)}");
+                        return;
+                    }
+                    Console.WriteLine("PortAudio output stream started for playback.");
+
+                    int samplesPerBuffer = framesPerBuffer * channels;
+                    var outSamples = new float[samplesPerBuffer];
+
+                    while (!ct.IsCancellationRequested)
+                    {
+                        // Fill outSamples from buffer with lock; zero-fill remainder
+                        lock (BufferLock)
+                        {
+                            int available = Math.Min(Buffer.Count, samplesPerBuffer);
+                            for (int i = 0; i < available; i++)
+                            {
+                                outSamples[i] = Buffer[i];
+                            }
+                            for (int i = available; i < samplesPerBuffer; i++)
+                            {
+                                outSamples[i] = 0f;
+                            }
+                            if (available > 0)
+                            {
+                                Buffer.RemoveRange(0, available);
+                            }
+                        }
+
+                        var handle = GCHandle.Alloc(outSamples, GCHandleType.Pinned);
+                        try
+                        {
+                            rc = PortAudioNative.Pa_WriteStream(stream, handle.AddrOfPinnedObject(), (ulong)framesPerBuffer);
+                        }
+                        finally
+                        {
+                            handle.Free();
+                        }
+                        if (rc != PortAudioNative.paNoError)
+                        {
+                            Console.Error.WriteLine($"Failed to write PortAudio output stream: {PortAudioNative.ErrorText(rc)}");
+                            // Continue loop; if persistent failure, cancellation will stop later.
+                        }
+                    }
                 }
                 catch (OperationCanceledException) { }
-                SaveAudioToPCMFile("output.pcm");
-                Console.WriteLine("PortAudio output stream stub stopped.");
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"Playback loop error: {ex}");
+                }
+                finally
+                {
+                    try { if (stream != IntPtr.Zero) PortAudioNative.Pa_StopStream(stream); } catch { }
+                    try { if (stream != IntPtr.Zero) PortAudioNative.Pa_CloseStream(stream); } catch { }
+                    SaveAudioToPCMFile("output.pcm");
+                    Console.WriteLine("PortAudio output stream stopped.");
+                }
             }, ct);
         }
 

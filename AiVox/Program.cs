@@ -61,14 +61,22 @@ namespace AiVox
                 cts.Cancel();
             };
 
-            // PortAudio 初始化/释放：与 Go 一致，但绑定差异保留为后续等价实现（记录差异）
+            // PortAudio 初始化（使用原生 P/Invoke，与 Go 行为一致）
             try
             {
-                // TODO: PortAudioSharp.PortAudio.Initialize();
+                var rc = PortAudioNative.Pa_Initialize();
+                if (rc != PortAudioNative.paNoError)
+                {
+                    Console.Error.WriteLine($"PortAudio initialize error: {PortAudioNative.ErrorText(rc)}");
+                }
+            }
+            catch (DllNotFoundException)
+            {
+                Console.Error.WriteLine("PortAudio library not found. Ensure libportaudio is installed (e.g. brew install portaudio).");
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"PortAudio initialize error (recorded gap): {ex.Message}");
+                Console.Error.WriteLine($"PortAudio initialize error: {ex.Message}");
             }
 
             using var ws = new ClientWebSocket();
@@ -109,7 +117,11 @@ namespace AiVox
 
             try
             {
-                // TODO: PortAudioSharp.PortAudio.Terminate();
+                var rc = PortAudioNative.Pa_Terminate();
+                if (rc != PortAudioNative.paNoError)
+                {
+                    Console.Error.WriteLine($"Failed to terminate portaudio: {PortAudioNative.ErrorText(rc)}");
+                }
             }
             catch (Exception ex)
             {
