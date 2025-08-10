@@ -40,8 +40,8 @@ namespace AiVox
 
     internal sealed class TTSPayload
     {
-        //[JsonPropertyName("speaker")]
-        //public string? Speaker { get; set; }
+        [JsonPropertyName("speaker")]
+        public string? Speaker { get; set; }
 
         [JsonPropertyName("audio_config")]
         public AudioConfig AudioConfig { get; set; } = new AudioConfig();

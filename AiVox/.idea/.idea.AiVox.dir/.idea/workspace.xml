@@ -11,12 +11,11 @@
       <change beforePath="$PROJECT_DIR$/.idea/.idea.AiVox.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.AiVox.dir/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ClientRequest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ClientRequest.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ServerResponse.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ServerResponse.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/Debug/net9.0/AiVox.dll" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Debug/net9.0/AiVox.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/Debug/net9.0/AiVox.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Debug/net9.0/AiVox.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Debug/net9.0/output.pcm" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Debug/net9.0/output.pcm" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/AiVox.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/AiVox.AssemblyInfo.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/AiVox.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/AiVox.AssemblyInfoInputs.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/AiVox.csproj.CoreCompileInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/AiVox.csproj.CoreCompileInputs.cache" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/AiVox.dll" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/AiVox.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/AiVox.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/AiVox.pdb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obj/Debug/net9.0/AiVox.sourcelink.json" beforeDir="false" afterPath="$PROJECT_DIR$/obj/Debug/net9.0/AiVox.sourcelink.json" afterDir="false" />
@@ -46,6 +45,9 @@
     "accountId": "e5fd60f2-9e48-4ca4-a3c5-3b439f429032"
   }
 }]]></component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="mock:///Users/aa123456/code/net/RealTimeDialog/AiVox/obj/Debug/net9.0/AiVox.AssemblyInfo.cs" root0="SKIP_HIGHLIGHTING" />
+  </component>
   <component name="KubernetesApiPersistence"><![CDATA[{}]]></component>
   <component name="KubernetesApiProvider"><![CDATA[{
   "isMigrated": true
@@ -62,7 +64,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    ".NET Project.AiVox.executor": "Debug",
+    ".NET Project.AiVox.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
@@ -107,7 +109,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1754828939828</updated>
-      <workItem from="1754828941291" duration="1980000" />
+      <workItem from="1754828941291" duration="3754000" />
     </task>
     <task id="LOCAL-00001" summary="bb">
       <option name="closed" value="true" />
@@ -117,7 +119,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754829353046</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="finish">
+      <option name="closed" value="true" />
+      <created>1754831014201</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1754831014201</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -139,7 +149,8 @@
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="bb" />
-    <option name="LAST_COMMIT_MESSAGE" value="bb" />
+    <MESSAGE value="finish" />
+    <option name="LAST_COMMIT_MESSAGE" value="finish" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

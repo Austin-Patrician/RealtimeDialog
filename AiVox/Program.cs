@@ -143,6 +143,8 @@ namespace AiVox
 
             try
             {
+                //speakers: zh_male_yunzhou_jupiter_bigtts 清爽沉稳的男声,zh_male_xiaotian_jupiter_bigtts：对应xiaotian音色，清爽磁性的男声
+                
                 var startReq = new StartSessionPayload
                 {
                     TTS = new TTSPayload
@@ -152,7 +154,8 @@ namespace AiVox
                             Channel = 1,
                             Format = "pcm",
                             SampleRate = 24000
-                        }
+                        },
+                        Speaker = "zh_female_xiaohe_jupiter_bigtts"
                     },
                     Dialog = new DialogPayload
                     {
